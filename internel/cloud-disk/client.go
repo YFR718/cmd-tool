@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	file_control "github.com/YFR718/cmd-tool/server/cloud-disk/pkg/file-control"
+	"io"
 	"io/ioutil"
 	"mime/multipart"
-	"path/filepath"
-
-	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 )
 
 type File struct {
@@ -82,17 +82,46 @@ func (p *ProgressPrinter) Write(b []byte) (n int, err error) {
 	return
 }
 
+type ProgressPrinter2 struct {
+	total int
+}
+
+func (p *ProgressPrinter2) Write(b []byte) (n int, err error) {
+	n = len(b)
+	p.total++
+	switch p.total % 5 {
+	case 0:
+		fmt.Printf("\rDownLoading.")
+	case 1:
+		fmt.Printf("\rDownLoading..")
+	case 2:
+		fmt.Printf("\rDownLoading...")
+	case 3:
+		fmt.Printf("\rDownLoading....")
+	case 4:
+		fmt.Printf("\rDownLoading.....")
+	}
+
+	return
+}
+
 func pushFile(path, local string) error {
+	fmt.Println("path and local:", path, local)
+
 	filestate, err := os.Stat(local)
 	if err != nil {
 		return err
 	}
 	zip := false
 	if filestate.IsDir() {
-		path = filepath.Join(path, filestate.Name())
-		mkdir(path)
+		//path = filepath.Join(path, filestate.Name())
+		//
+		//mkdir(path)
 		zip = true
-		err = Zip(local)
+		f := file_control.File{Path: local}
+		println("p1")
+		err = f.Zip()
+		println("p2", err)
 		if err != nil {
 			return err
 		}
@@ -154,12 +183,13 @@ func pushFile(path, local string) error {
 	}
 
 	// 打印响应体
-	fmt.Println(string(responseBytes))
+	fmt.Println("\n", string(responseBytes))
 	return nil
 }
 
 func pullFile(path string) error {
 	// 创建一个 HTTP 请求
+	fmt.Println("getting file... ")
 	request, err := http.NewRequest("GET", "http://127.0.0.1:8080/api/file?path="+path, nil)
 	if err != nil {
 		return err
@@ -171,6 +201,7 @@ func pullFile(path string) error {
 		return err
 	}
 	defer response.Body.Close()
+
 	zip := response.Header.Get("zip")
 	name := response.Header.Get("name")
 
@@ -181,22 +212,30 @@ func pullFile(path string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
 
-	// 将服务器返回的文件写入本地文件
-	_, err = io.Copy(file, response.Body)
+	// 将服务器返回的文件写入本地文件,并动态打印进度条
+	_, err = io.Copy(file, io.TeeReader(response.Body, &ProgressPrinter2{total: 0}))
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("File downloaded successfully: ", name)
+	//_, err = io.Copy(file, response.Body)
+
+	fmt.Println("\n File downloaded successfully: ", name)
 
 	// 解压缩
 	if zip == "true" {
-		err = UnZip(local, twd)
+		f := file_control.File{Path: local}
+		if err != nil {
+			println(err.Error())
+		}
+
+		err = f.UnZip()
 		if err != nil {
 			return err
 		}
+
+		file.Close()
 		os.RemoveAll(local)
 	}
 	return nil

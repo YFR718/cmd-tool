@@ -7,7 +7,11 @@ import (
 )
 
 func getFile() *File {
-	f, _ := NewFile("./tmp")
+	f, err := NewFile("./tmp")
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
 	return f
 
 }
@@ -30,17 +34,30 @@ func Test_demo2(t *testing.T) {
 
 func Test_zip(t *testing.T) {
 	f := getFile()
+	if f == nil {
+		return
+	}
 	err := f.Zip()
 	if err != nil {
 		fmt.Println(err)
 	}
 }
-
-func Test_Read(t *testing.T) {
-	f := getFile()
-	err := f.Read()
+func Test_unzip(t *testing.T) {
+	f, err := NewFile("./tmp.zip")
+	if f == nil {
+		t.Error(err)
+	}
+	err = f.UnZip()
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(len(f.data))
 }
+
+//func Test_Read(t *testing.T) {
+//	f := getFile()
+//	err := f.Read()
+//	if err != nil {
+//		fmt.Println(err)
+//	}
+//	fmt.Println(len(f.data))
+//}

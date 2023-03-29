@@ -2,8 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
-	file_control "github.com/YFR718/cmd-tool/cmd/cloud-disk/internal/file-control"
+	"github.com/YFR718/cmd-tool/server/cloud-disk/pkg/file-control"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
@@ -11,12 +10,14 @@ import (
 
 func GetList(c *gin.Context) {
 	path := c.Query("path")
+	// 检查path是否为空
 	if path == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "empty path",
 		})
 		return
 	}
+	// 创建文件对象
 	f, err := file_control.NewFile(path)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -38,6 +39,7 @@ func GetList(c *gin.Context) {
 
 func Mkdir(c *gin.Context) {
 	path := c.Query("path")
+	// 检查path是否为空
 	if path == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "empty path",
@@ -59,12 +61,14 @@ func Mkdir(c *gin.Context) {
 
 func RemoveFile(c *gin.Context) {
 	path := c.Query("path")
+	// 检查path是否为空
 	if path == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "empty path",
 		})
 		return
 	}
+	// 创建文件对象
 	f, err := file_control.NewFile(path)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -72,6 +76,7 @@ func RemoveFile(c *gin.Context) {
 		})
 		return
 	}
+
 	err = f.Remove()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -116,7 +121,7 @@ func SendFile(c *gin.Context) {
 	err = f.Zip()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"error": "文件压缩失败" + err.Error(),
 		})
 		return
 	}
@@ -151,12 +156,12 @@ func GetFile(c *gin.Context) {
 	})
 
 	if zip == "true" {
-		f, err := file_control.NewFile(path + "/" + file.Filename)
+		f, _ := file_control.NewFile(path + "/" + file.Filename)
+		err = f.UnZip()
 		if err != nil {
-			fmt.Println(err)
+			c.String(http.StatusInternalServerError, "file解压失败: "+err.Error())
 			return
 		}
-		f.UnZip()
 		os.RemoveAll("./data" + path + "/" + file.Filename)
 	}
 

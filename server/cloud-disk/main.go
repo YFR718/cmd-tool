@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/YFR718/cmd-tool/cmd/cloud-disk/internal/routers"
+	"github.com/YFR718/cmd-tool/server/cloud-disk/internal/routers"
 	"github.com/gin-gonic/gin"
 )
 

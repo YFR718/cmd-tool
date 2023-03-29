@@ -1,5 +1,31 @@
 # cmd-tool
 
+## 基本使用
+
+
+```bash
+# 下载cmd-tool
+git clone git@github.com:YFR718/cmd-tool.git
+# 修改配置文件
+cd cmd-tool
+vim config.yaml
+# 安装cmd-tool
+go install github.com/YFR718/cmd-tool@latest
+# 部署网盘服务器
+cd server/cloud-disk
+go run main.go
+
+# 使用cmd-tool
+tool file
+>ls 
+>cd 
+>mkdir xxx
+>push xxx
+>pull xxx
+```
+
+
+
 ## 主要功能
 
 - 基本工具
@@ -20,6 +46,12 @@
   - tcp 压测
   - http 压测
   - mysql压测
+- 计算机性能测试
+  - CPU
+  - 内存
+  - 磁盘
+  - GPU
+  - 网络
 - 机器人
   - chatgpt 机器人
 

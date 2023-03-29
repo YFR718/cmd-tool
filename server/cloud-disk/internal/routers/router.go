@@ -1,8 +1,7 @@
 package routers
 
 import (
-	"github.com/YFR718/cmd-tool/cmd/cloud-disk/internal/api"
-
+	"github.com/YFR718/cmd-tool/server/cloud-disk/internal/api"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
